@@ -21,7 +21,10 @@ class UserController {
 
     async login(req, res, next) {
         try {
-
+            const { email, password } = req.body
+            const UserData = await UserService.login(email, password)
+            res.cookie('refreshToken', UserData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: true })
+            return res.json(UserData)
         }
         catch (error) {
             next(error)
@@ -30,7 +33,10 @@ class UserController {
 
     async logout(req, res, next) {
         try {
-
+            const { refresh } = req.cookies
+            const token = await UserService.logout(refresh)
+            res.clearCookie('refresh')
+            return res.json(token)
         }
         catch (error) {
             next(error)
@@ -50,7 +56,10 @@ class UserController {
 
     async refresh(req, res, next) {
         try {
-
+            const { refresh } = req.cookies
+            const userData = await UserService.refresh(refresh)
+            res.cookie('refresh', userData.refresh, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, secure: true })
+            return res.json(userData)
         }
         catch (error) {
             next(error)
@@ -59,7 +68,8 @@ class UserController {
 
     async getUsers(req, res, next) {
         try {
-            res.json(['124', '456'])
+            const users = await UserService.getAllUsers()
+            return res.json(users)
         }
         catch (error) {
             next(error)
